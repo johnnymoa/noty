@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Noty</title>
+<style>
+  :root {
+    --sidebar-width: 280px;
+    --primary-color: #6d9dc5; /* Soft blue instead of lavender */
+    --primary-dark: #5a85a8; /* Darker blue */
+    --accent-color: #a0c1b9; /* Soft sage green instead of peach */
+    --accent-hover: #7a9e95; /* Darker sage green */
+    --paper-color: #f9f7f2; /* Slightly warmer off-white */
+    --line-color: #d8d3c5; /* Taupe for lines */
+    --margin-color: #7a9e95; /* Sage green for margin */
+    --sidebar-bg: #f2f1ec; /* Warm light background with slight green undertone */
+    --note-item-bg: #f4f1e8; /* Warm cream with slight green undertone */
+    --note-item-active: #e8e4d5; /* Warmer cream */
+    --text-color: #4a5568; /* Slate gray instead of muted purple */
+    --delete-color: #e17055; /* Terracotta instead of soft coral */
+    --body-bg: #f2f1ec; /* Warm light background with slight green undertone */
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    background: var(--body-bg);
+    color: var(--text-color);
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23c5cfd6' fill-opacity='0.2' fill-rule='evenodd'/%3E%3C/svg%3E");
+  }
+
+  /* Sidebar Styling */
+  #sidebar {
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    height: 100vh;
+    box-shadow: 3px 0 15px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1); /* Smoother easing function */
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 10;
+    flex-shrink: 0;
+    border-right: 1px dashed var(--line-color);
+    will-change: transform; /* Optimize for animations */
+  }
+
+  #sidebar.hidden {
+    transform: translateX(calc(-1 * var(--sidebar-width)));
+  }
+
+  #sidebar h2 {
+    text-align: center;
+    padding: 20px 0 10px;
+    margin: 0;
+    background: var(--primary-color);
+    color: white;
+    font-size: 1.8rem;
+    font-weight: normal;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 0px var(--primary-dark);
+  }
+
+  #sidebar .subtitle {
+    text-align: center;
+    padding: 0 0 15px;
+    margin: 0;
+    background: var(--primary-color);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.8rem;
+    font-weight: normal;
+    letter-spacing: 0.5px;
+    border-bottom: 3px dashed #fff;
+  }
+
+  #noteList {
+    list-style: none;
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 16px;
+    background-image: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c5cfd6' fill-opacity='0.2'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  #noteList li {
+    margin-bottom: 12px;
+    border-radius: 8px;
+    background: var(--note-item-bg);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border: 1px solid var(--line-color);
+    overflow: hidden;
+  }
+
+  #noteList li:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  #noteList li.active {
+    background: var(--note-item-active);
+    border-left: 4px solid var(--primary-color);
+  }
+
+  #noteList li a {
+    padding: 14px 16px;
+    text-decoration: none;
+    color: var(--text-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1rem;
+    gap: 8px;
+  }
+
+  .deleteNote {
+    background: transparent;
+    border: none;
+    color: var(--delete-color);
+    cursor: pointer;
+    font-size: 18px;
+    opacity: 0.7;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+    margin-left: 8px;
+  }
+
+  .deleteNote:hover {
+    opacity: 1;
+    background: rgba(225, 112, 85, 0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Delete confirmation buttons */
+  .delete-confirm-container {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+  }
+
+  .confirm-delete, .cancel-delete {
+    border: none;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s;
+    margin-left: 4px;
+  }
+
+  .confirm-delete {
+    background: var(--delete-color);
+    color: white;
+  }
+
+  .confirm-delete:hover {
+    background: #c45a45;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .cancel-delete {
+    background: #e0e0e0;
+    color: var(--text-color);
+  }
+
+  .cancel-delete:hover {
+    background: #d0d0d0;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  /* Notebook Styling */
+  #notebook {
+    flex-grow: 1;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--paper-color);
+    transition: margin-left 0.5s cubic-bezier(0.25, 0.1, 0.25, 1); /* Match sidebar transition */
+    box-shadow: inset 5px 0 15px rgba(0,0,0,0.02);
+    margin-left: var(--sidebar-width);
+    will-change: margin-left; /* Optimize for animations */
+  }
+
+  #notebook.full-width {
+    margin-left: 0;
+  }
+
+  /* Create a header container for the toggle button and title */
+  .notebook-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+  }
+
+  #toggleSidebar {
+    background: var(--accent-color);
+    color: white;
+    width: 45px;
+    height: 45px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.3s ease; /* Smoother transition */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+    margin-right: 15px;
+    position: relative;
+  }
+  
+  #toggleSidebar:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  /* Change button appearance when sidebar is shown/hidden */
+  #toggleSidebar.active {
+    background: var(--primary-dark);
+  }
+  
+  /* Change toggle button icon based on sidebar state */
+  #toggleSidebar:before {
+    content: '📒';
+    transition: all 0.3s ease; /* Smooth icon transition */
+  }
+  
+  #sidebar.hidden ~ #notebook #toggleSidebar:before,
+  #sidebar.auto-hidden ~ #notebook #toggleSidebar:before {
+    content: '📖';
+  }
+
+  #noteTitle {
+    width: 100%;
+    font-size: 28px;
+    border: none;
+    outline: none;
+    padding: 0;
+    background: transparent;
+    color: var(--text-color);
+    font-family: inherit;
+    font-weight: bold;
+  }
+
+  .lined-paper {
+    flex-grow: 1;
+    position: relative;
+    overflow: hidden;
+    padding: 0 40px 40px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .paper-content {
+    height: 100%;
+    position: relative;
+    overflow-y: auto;
+    padding: 0 0 0 40px;
+    background-color: var(--paper-color);
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23c5cfd6' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) transparent;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .paper-content::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .paper-content::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .paper-content::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 4px;
+    border: 0;
+  }
+
+  .paper-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 30px;
+    bottom: 0;
+    width: 2px;
+    background: var(--margin-color);
+  }
+
+  .lined-paper textarea {
+    width: 100%;
+    min-height: 100%;
+    border: none;
+    resize: none;
+    outline: none;
+    background-color: transparent;
+    background-image: linear-gradient(to bottom, var(--line-color) 1px, transparent 1px);
+    background-size: 100% 28px;
+    background-attachment: local;
+    font-size: 18px;
+    line-height: 28px;
+    padding: 0 8px 0 0;
+    position: relative;
+    z-index: 2;
+    color: var(--text-color);
+    font-family: inherit;
+    box-sizing: border-box;
+    flex-grow: 1;
+  }
+
+  /* Remove paper-background styles since we no longer need it */
+  .paper-background {
+    display: none; /* Hide it instead of removing from HTML to avoid breaking scripts */
+  }
+
+  /* Hidden File Input */
+  #importNotesInput {
+    display: none;
+  }
+
+  /* Responsive Design */
+  @media screen and (max-width: 768px) {
+    #sidebar {
+      /* Position is already fixed in the main styles */
+      box-shadow: 0 0 20px rgba(0,0,0,0.2); /* Enhanced shadow for better visibility */
+    }
+
+    #notebook {
+      width: 100%;
+      margin-left: 0 !important; /* Always ensure notebook takes full width on mobile */
+    }
+    
+    /* Hide sidebar by default on small screens */
+    #sidebar.auto-hidden {
+      transform: translateX(calc(-1 * var(--sidebar-width)));
+    }
+
+    #toggleSidebar {
+      position: fixed; /* Fixed position on mobile to ensure it's always visible */
+      top: 20px;
+      left: 20px;
+      margin-right: 0;
+      z-index: 30; /* Higher than sidebar to ensure it's always clickable */
+    }
+    
+    /* Add a subtle indicator when sidebar is hidden */
+    #toggleSidebar:after {
+      content: '';
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 10px;
+      height: 10px;
+      background: var(--primary-color);
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    #sidebar.auto-hidden ~ #notebook #toggleSidebar:after,
+    #sidebar.hidden ~ #notebook #toggleSidebar:after {
+      opacity: 1;
+    }
+    
+    /* Add padding to notebook header to account for fixed toggle button */
+    .notebook-header {
+      padding-left: 80px;
+    }
+  }
+
+  /* Add CSS for toast notifications */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    font-family: inherit;
+  }
+  
+  .toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  
+  .toast.success {
+    background: #5a9a7a;
+  }
+  
+  .toast.error {
+    background: var(--delete-color);
+  }
+  
+  .toast.info {
+    background: var(--accent-color);
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 20px;
+    text-align: center;
+    color: var(--text-color);
+    opacity: 0.7;
+  }
+  
+  .empty-state p {
+    margin-bottom: 15px;
+  }
+  
+  .empty-state button {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .empty-state button:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  
+  /* New Note Button Styling */
+  #newNoteButtonContainer {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.7);
+    border-bottom: 1px dashed var(--line-color);
+  }
+  
+  #newNoteBtn {
+    width: 100%;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  #newNoteBtn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  
+  /* Bottom Sidebar Buttons */
+  #sidebarBottomButtons {
+    display: flex;
+    gap: 10px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.7);
+    border-top: 1px dashed var(--line-color);
+    margin-top: auto;
+  }
+  
+  #sidebarBottomButtons button {
+    flex: 1;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+  }
+  
+  #sidebarBottomButtons button:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  /* Sorting options for the sidebar */
+  #sortingOptions {
+    display: flex;
+    padding: 6px 16px;
+    background: rgba(255, 255, 255, 0.7);
+    border-bottom: 1px dashed var(--line-color);
+    gap: 6px;
+  }
+
+  #sortingOptions label {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    margin-right: 5px;
+  }
+
+  .sort-option {
+    flex: 1;
+    font-size: 0.7rem;
+    background: var(--paper-color);
+    border: 1px solid var(--line-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    color: var(--text-color);
+  }
+
+  .sort-option.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-dark);
+  }
+
+  .sort-option:hover {
+    background: var(--note-item-active);
+  }
+
+  .sort-option.active:hover {
+    background: var(--primary-dark);
+  }
+
+  .note-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+  }
+
+  .note-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .note-timestamp {
+    font-size: 0.7rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <h2>Noty</h2>
+  <div class="subtitle">Local. Private. Simple.</div>
+  <div id="newNoteButtonContainer">
+    <button id="newNoteBtn" title="Create a new note">📝 New Note</button>
+  </div>
+  <div id="sortingOptions">
+    <label>Sort by:</label>
+    <button class="sort-option active" data-sort="created">Last Created</button>
+    <button class="sort-option" data-sort="updated">Last Updated</button>
+  </div>
+  <ul id="noteList"></ul>
+  <div id="sidebarBottomButtons">
+    <button id="exportNotes" title="Export all notes">📦 Export</button>
+    <button id="importNotes" title="Import notes">📥 Import</button>
+    <button id="deleteAllNotes" title="Delete all notes">🗑️ClearAll</button>
+  </div>
+  <input type="file" id="importNotesInput" accept=".json" />
+</div>
+
+<div id="notebook">
+  <div class="notebook-header">
+    <button id="toggleSidebar"></button>
+    <input type="text" id="noteTitle" placeholder="Note Title..." />
+  </div>
+  <div class="lined-paper">
+    <div class="paper-content">
+      <textarea id="noteContent" placeholder="Start typing your note here..."></textarea>
+      <div class="paper-background"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // Helper functions
+    function getParameterByName(name) {
+      const url = window.location.href;
+      const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+      const results = regex.exec(url);
+      if (!results) return null;
+      if (!results[2]) return '';
+      return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+
+    function generateNoteId() {
+      return 'note-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function updatePageTitle(title) {
+      document.title = title ? title + ' - Noty' : 'Noty';
+    }
+
+    // Format a timestamp to a human-readable date
+    function formatDate(timestamp) {
+      if (!timestamp) return 'Unknown date';
+      const date = new Date(timestamp);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }
+
+    // Format date as DD/MM/YYYY or time in HH:MM format for today
+    function getRelativeTime(timestamp) {
+      if (!timestamp) return 'Unknown';
+      
+      const date = new Date(timestamp);
+      const today = new Date();
+      
+      // Check if it's today
+      if (date.getDate() === today.getDate() && 
+          date.getMonth() === today.getMonth() && 
+          date.getFullYear() === today.getFullYear()) {
+        // Return time in 24-hour format for today
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+      }
+      
+      // Format as DD/MM/YYYY
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Month is 0-indexed
+      const year = date.getFullYear();
+      
+      return `${day}/${month}/${year}`;
+    }
+
+    // Show a toast notification
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      // Animate in
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 10);
+      
+      // Remove after 3 seconds
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          document.body.removeChild(toast);
+        }, 300);
+      }, 3000);
+    }
+
+    let noteId = getParameterByName('noteId');
+    let isNewNote = false;
+    let sortPreference = localStorage.getItem('noty_sort_preference') || 'created'; // Default sort by creation date
+
+    // DOM elements
+    const noteTitle = document.getElementById('noteTitle');
+    const noteContent = document.getElementById('noteContent');
+    const sidebar = document.getElementById('sidebar');
+    const notebook = document.getElementById('notebook');
+    const toggleSidebar = document.getElementById('toggleSidebar');
+    const noteList = document.getElementById('noteList');
+    const exportNotesBtn = document.getElementById('exportNotes');
+    const importNotesBtn = document.getElementById('importNotes');
+    const importNotesInput = document.getElementById('importNotesInput');
+    const deleteAllNotesBtn = document.getElementById('deleteAllNotes');
+    const newNoteBtn = document.getElementById('newNoteBtn');
+    const sortOptions = document.querySelectorAll('.sort-option');
+
+    // Set active sort option based on preference
+    document.querySelector(`.sort-option[data-sort="${sortPreference}"]`).classList.add('active');
+    document.querySelector(`.sort-option[data-sort="${sortPreference === 'created' ? 'updated' : 'created'}"]`).classList.remove('active');
+
+    // Add event listeners to sort options
+    sortOptions.forEach(option => {
+      option.addEventListener('click', function() {
+        // Update UI
+        sortOptions.forEach(opt => opt.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Save preference
+        sortPreference = this.dataset.sort;
+        localStorage.setItem('noty_sort_preference', sortPreference);
+        
+        // Reload notes list with new sorting
+        loadNotesList();
+      });
+    });
+
+    // Check if this is the first time using the app
+    if (!localStorage.getItem('noty_welcomed') && Object.keys(localStorage).filter(key => key.startsWith('note-')).length === 0) {
+      // Set welcome flag
+      localStorage.setItem('noty_welcomed', 'true');
+      
+      // Create welcome note
+      const welcomeNoteId = generateNoteId();
+      const welcomeNote = {
+        title: "Welcome to Noty! 📝",
+        content: "Hello there! Welcome to your cozy little note-taking space.\n\nHere are some tips to get started:\n\n• Create a new note with Ctrl+N (or Cmd+N on Mac)\n• Click the notebook icon in the top left to toggle the sidebar\n• Your notes are automatically saved as you type\n• Export your notes to keep them safe\n\nEnjoy your stay in Noty! ✨",
+        timestamp: Date.now()
+      };
+      localStorage.setItem(welcomeNoteId, JSON.stringify(welcomeNote));
+      
+      // Redirect to welcome note
+      window.location.href = '?noteId=' + welcomeNoteId;
+      return; // Stop execution since we're redirecting
+    }
+    
+    // Set initial notebook class based on sidebar visibility
+    if (sidebar.classList.contains('hidden') || sidebar.classList.contains('auto-hidden')) {
+      notebook.classList.add('full-width');
+    }
+
+    // Check if we have a note ID in the URL
+    if (noteId) {
+      // Try to load the note
+      const savedNote = JSON.parse(localStorage.getItem(noteId));
+      if (savedNote) {
+        // Note exists, load it
+        noteTitle.value = savedNote.title || '';
+        noteContent.value = savedNote.content || '';
+        updatePageTitle(savedNote.title);
+        
+        // Update note with timestamps if they don't exist (backward compatibility)
+        if (!savedNote.created || !savedNote.updated) {
+          // For old notes, use the existing timestamp for both timestamps
+          // or create new timestamps if none exist
+          const now = Date.now();
+          savedNote.created = savedNote.created || savedNote.timestamp || now;
+          savedNote.updated = savedNote.updated || savedNote.timestamp || now;
+          
+          // Save the updated note with timestamps
+          localStorage.setItem(noteId, JSON.stringify(savedNote));
+        }
+      } else {
+        // Note ID in URL doesn't exist, redirect to root
+        window.location.href = window.location.pathname;
+        return; // Stop execution since we're redirecting
+      }
+    } else {
+      // No note ID in URL - we're at the root
+      // Just set empty values but don't create a note yet
+      noteTitle.value = '';
+      noteContent.value = '';
+      updatePageTitle('');
+      isNewNote = true;
+    }
+
+    // Save note content to localStorage on input
+    function saveNote() {
+      // If we're at the root with no note ID and this is the first edit, create a new note
+      if (isNewNote) {
+        // Generate a new note ID
+        noteId = generateNoteId();
+        
+        const now = Date.now();
+        // Save the note data immediately with both timestamps
+        const noteData = {
+          title: noteTitle.value,
+          content: noteContent.value,
+          created: now,
+          updated: now
+        };
+        localStorage.setItem(noteId, JSON.stringify(noteData));
+        
+        // Update URL
+        history.replaceState(null, '', '?noteId=' + noteId);
+        isNewNote = false;
+        
+        // Make the sidebar visible to show the new note (on desktop)
+        if (window.innerWidth > 768) {
+          sidebar.classList.remove('hidden');
+          sidebar.classList.remove('auto-hidden');
+          notebook.classList.remove('full-width');
+          toggleSidebar.classList.add('active');
+        } else {
+          // On mobile, briefly show the sidebar then hide it
+          sidebar.classList.remove('hidden');
+          sidebar.classList.remove('auto-hidden');
+          notebook.classList.remove('full-width');
+          toggleSidebar.classList.add('active');
+          
+          setTimeout(() => {
+            sidebar.classList.add('hidden');
+            notebook.classList.add('full-width');
+            toggleSidebar.classList.remove('active');
+          }, 2000);
+        }
+        
+        // Force rebuild of the notes list to include the new note
+        loadNotesList();
+        
+        // Show a confirmation toast
+        showToast('New note created!', 'info');
+      } else {
+        // Get the existing note to preserve creation date
+        const existingNote = JSON.parse(localStorage.getItem(noteId));
+        
+        // Regular save for existing note
+        const noteData = {
+          title: noteTitle.value,
+          content: noteContent.value,
+          created: existingNote.created || existingNote.timestamp || Date.now(), // Backward compatibility
+          updated: Date.now()
+        };
+        localStorage.setItem(noteId, JSON.stringify(noteData));
+        
+        // Update the sidebar notes list if sorting by update time or if the sidebar is visible
+        if (sortPreference === 'updated' || (!sidebar.classList.contains('hidden') && !sidebar.classList.contains('auto-hidden'))) {
+          // Refresh the entire notes list to ensure proper sorting and updated timestamps
+          loadNotesList();
+        } else {
+          // Just update the title if we're not refreshing the entire list
+          const activeNoteLink = document.querySelector('#noteList li.active a');
+          if (activeNoteLink) {
+            const titleElement = activeNoteLink.querySelector('.note-title');
+            if (titleElement) {
+              titleElement.textContent = noteTitle.value && noteTitle.value.trim() ? noteTitle.value : 'Untitled Note';
+            }
+          }
+        }
+      }
+      
+      // Always update the page title
+      updatePageTitle(noteTitle.value);
+    }
+
+    // Add debounce to save function for better performance
+    let saveTimeout;
+    function debouncedSave() {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        saveNote();
+        
+        // If this was a new note creation, update the sidebar to show it
+        if (sidebar.classList.contains('hidden') || sidebar.classList.contains('auto-hidden')) {
+          // Even if sidebar is hidden, update the list so it's ready when shown
+          loadNotesList();
+        }
+      }, 300);
+    }
+
+    noteTitle.addEventListener('input', function() {
+      debouncedSave();
+    });
+    
+    noteContent.addEventListener('input', debouncedSave);
+    
+    // Function to check window width and auto-hide sidebar if needed
+    function checkWindowSize() {
+      if (window.innerWidth <= 768) {
+        sidebar.classList.add('auto-hidden');
+        sidebar.classList.add('hidden');
+        notebook.classList.add('full-width');
+        toggleSidebar.classList.remove('active');
+      } else {
+        sidebar.classList.remove('auto-hidden');
+        sidebar.classList.remove('hidden');
+        notebook.classList.remove('full-width');
+        toggleSidebar.classList.add('active');
+      }
+    }
+    
+    // Run on initial load
+    checkWindowSize();
+    
+    // Add window resize event listener
+    window.addEventListener('resize', checkWindowSize);
+
+    // Toggle Sidebar with animation - add both click and touch events
+    toggleSidebar.addEventListener('click', toggleSidebarHandler);
+    toggleSidebar.addEventListener('touchend', function(e) {
+      e.preventDefault(); // Prevent default touch behavior
+      toggleSidebarHandler(e);
+    });
+    
+    // Separate the handler function for reuse
+    function toggleSidebarHandler(e) {
+      // Prevent any default behavior
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Clear both classes that could hide the sidebar
+      sidebar.classList.remove('auto-hidden');
+      
+      // Toggle hidden class
+      sidebar.classList.toggle('hidden');
+      
+      // Toggle notebook width
+      notebook.classList.toggle('full-width');
+      
+      // Toggle active state for button styling
+      toggleSidebar.classList.toggle('active');
+      
+      // Always load notes list when sidebar is shown
+      if (!sidebar.classList.contains('hidden')) {
+        loadNotesList();
+      }
+    }
+
+    // Load notes list
+    function loadNotesList() {
+      noteList.innerHTML = '';
+      const notes = [];
+
+      // Collect all notes from localStorage
+      for (let key in localStorage) {
+        if (localStorage.hasOwnProperty(key) && key.startsWith('note-')) {
+          try {
+            const note = JSON.parse(localStorage.getItem(key));
+            
+            // Backward compatibility with old notes having only one timestamp
+            const created = note.created || note.timestamp || 0;
+            const updated = note.updated || note.timestamp || 0;
+            
+            notes.push({
+              id: key,
+              title: note.title && note.title.trim() ? note.title : 'Untitled Note',
+              created: created,
+              updated: updated
+            });
+          } catch (e) {
+            console.error('Error parsing note:', e);
+          }
+        }
+      }
+
+      // Sort notes based on preference
+      if (sortPreference === 'created') {
+        // Sort by creation date (most recent first)
+        notes.sort((a, b) => b.created - a.created);
+      } else {
+        // Sort by update date (most recent first)
+        notes.sort((a, b) => b.updated - a.updated);
+      }
+
+      if (notes.length === 0) {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.innerHTML = `
+          <p>No notes yet!</p>
+          <p>Click on the New Note button or start typing to create your first note.</p>
+        `;
+        noteList.appendChild(emptyState);
+        return;
+      }
+
+      // Render the notes list
+      notes.forEach((note, index) => {
+        const listItem = document.createElement('li');
+        
+        // Properly mark the current note as active
+        if (note.id === noteId) {
+          listItem.classList.add('active');
+        }
+
+        const link = document.createElement('a');
+        link.href = '?noteId=' + note.id;
+        
+        // Create a container for the note info
+        const noteInfo = document.createElement('div');
+        noteInfo.className = 'note-info';
+        
+        // Add title
+        const titleElement = document.createElement('div');
+        titleElement.className = 'note-title';
+        titleElement.textContent = note.title;
+        noteInfo.appendChild(titleElement);
+        
+        // Add timestamp based on sort preference
+        const timestampElement = document.createElement('div');
+        timestampElement.className = 'note-timestamp';
+        if (sortPreference === 'created') {
+          timestampElement.textContent = `${getRelativeTime(note.created)}`;
+          timestampElement.title = `Created: ${formatDate(note.created)}\nUpdated: ${formatDate(note.updated)}`;
+        } else {
+          timestampElement.textContent = `${getRelativeTime(note.updated)}`;
+          timestampElement.title = `Updated: ${formatDate(note.updated)}\nCreated: ${formatDate(note.created)}`;
+        }
+        noteInfo.appendChild(timestampElement);
+        
+        link.appendChild(noteInfo);
+        listItem.appendChild(link);
+
+        // Add delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'deleteNote';
+        deleteBtn.innerHTML = '🗑️';
+        deleteBtn.title = 'Delete Note';
+        deleteBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          e.preventDefault();
+          
+          // Replace delete button with confirm/cancel buttons
+          const confirmContainer = document.createElement('div');
+          confirmContainer.className = 'delete-confirm-container';
+          
+          // Confirm button
+          const confirmBtn = document.createElement('button');
+          confirmBtn.className = 'confirm-delete';
+          confirmBtn.innerHTML = '✓';
+          confirmBtn.title = 'Confirm Delete';
+          confirmBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            performDelete(note.id, note.title);
+          });
+          
+          // Cancel button
+          const cancelBtn = document.createElement('button');
+          cancelBtn.className = 'cancel-delete';
+          cancelBtn.innerHTML = '✕';
+          cancelBtn.title = 'Cancel Delete';
+          cancelBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            // Replace confirmation buttons with original delete button
+            confirmContainer.replaceWith(deleteBtn);
+          });
+          
+          confirmContainer.appendChild(confirmBtn);
+          confirmContainer.appendChild(cancelBtn);
+          
+          // Replace delete button with confirmation buttons
+          this.replaceWith(confirmContainer);
+        });
+
+        link.appendChild(deleteBtn);
+        
+        // No animation when loading menu items - immediately add with full opacity
+        listItem.style.opacity = '1';
+        listItem.style.transform = 'translateY(0)';
+        noteList.appendChild(listItem);
+      });
+      
+      // Make sure sidebar shows the current note if available
+      if (noteId) {
+        const activeElement = document.querySelector('#noteList li.active');
+        if (activeElement) {
+          // Ensure the active note is visible in the scrollable area
+          activeElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+    }
+
+    // Delete individual note
+    function performDelete(id, title) {
+      // Get the note element
+      const noteElement = document.querySelector(`#noteList li a[href="?noteId=${id}"]`).parentNode;
+      
+      // Add CSS transition to ensure smooth animation
+      noteElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      
+      // Start the animation
+      noteElement.style.opacity = '0';
+      noteElement.style.transform = 'translateX(20px)';
+      
+      // After animation completes
+      setTimeout(() => {
+        // Remove the note from localStorage
+        localStorage.removeItem(id);
+        
+        // Remove the element from DOM
+        noteElement.remove();
+        
+        // If we deleted the current note, go back to root
+        if (id === noteId) {
+          history.pushState(null, '', window.location.pathname);
+          noteId = null;
+          isNewNote = true;
+          noteTitle.value = '';
+          noteContent.value = '';
+          updatePageTitle('');
+        }
+        
+        // Only reload the entire list if it was the last note
+        const remainingNotes = Object.keys(localStorage).filter(key => key.startsWith('note-'));
+        if (remainingNotes.length === 0) {
+          loadNotesList(); // Show the empty state
+        }
+        
+        showToast(`"${title}" has been deleted`, 'success');
+      }, 300); // Match this timing with the transition duration
+    }
+
+    // Delete individual note (legacy function kept for compatibility)
+    function deleteNote(id, title) {
+      performDelete(id, title);
+    }
+
+    // Export all notes
+    exportNotesBtn.addEventListener('click', function() {
+      const allNotes = {};
+      let noteCount = 0;
+      
+      for (let key in localStorage) {
+        if (localStorage.hasOwnProperty(key) && key.startsWith('note-')) {
+          allNotes[key] = localStorage.getItem(key);
+          noteCount++;
+        }
+      }
+      
+      if (noteCount === 0) {
+        showToast('No notes to export', 'error');
+        return;
+      }
+      
+      const dataStr = JSON.stringify(allNotes, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'noty_backup.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      showToast(`${noteCount} notes exported successfully!`, 'success');
+    });
+
+    // Import notes
+    importNotesBtn.addEventListener('click', function() {
+      importNotesInput.click();
+    });
+
+    importNotesInput.addEventListener('change', function() {
+      const file = importNotesInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const importedNotes = JSON.parse(e.target.result);
+            let importCount = 0;
+            
+            for (let key in importedNotes) {
+              if (importedNotes.hasOwnProperty(key) && key.startsWith('note-')) {
+                try {
+                  // Parse note to handle timestamp migration
+                  const noteData = JSON.parse(importedNotes[key]);
+                  
+                  // Ensure note has both timestamps for compatibility with new system
+                  if (!noteData.created && noteData.timestamp) {
+                    noteData.created = noteData.timestamp;
+                  }
+                  
+                  if (!noteData.updated && noteData.timestamp) {
+                    noteData.updated = noteData.timestamp;
+                  }
+                  
+                  // If somehow neither timestamp exists, add them
+                  if (!noteData.created && !noteData.updated) {
+                    const now = Date.now();
+                    noteData.created = now;
+                    noteData.updated = now;
+                  }
+                  
+                  // Save the modernized note data
+                  localStorage.setItem(key, JSON.stringify(noteData));
+                  importCount++;
+                } catch (parseError) {
+                  // If we can't parse the note data, just import it as-is (backward compatibility)
+                  localStorage.setItem(key, importedNotes[key]);
+                  importCount++;
+                }
+              }
+            }
+            
+            showToast(`${importCount} notes imported successfully!`, 'success');
+            loadNotesList();
+          } catch (error) {
+            showToast('Failed to import notes. Invalid file format.', 'error');
+          }
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    // Delete all notes
+    deleteAllNotesBtn.addEventListener('click', function() {
+      if (confirm('Are you sure you want to delete all notes? This action cannot be undone.')) {
+        let noteCount = 0;
+        
+        for (let key in localStorage) {
+          if (localStorage.hasOwnProperty(key) && key.startsWith('note-')) {
+            localStorage.removeItem(key);
+            noteCount++;
+          }
+        }
+        
+        // Reset to root with empty state
+        history.pushState(null, '', window.location.pathname);
+        noteId = null;
+        isNewNote = true;
+        noteTitle.value = '';
+        noteContent.value = '';
+        updatePageTitle('');
+        loadNotesList();
+        
+        showToast(`${noteCount} notes have been deleted`, 'success');
+      }
+    });
+
+    // Create new note
+    function createNewNote() {
+      // Generate a new note ID immediately
+      const newNoteId = generateNoteId();
+      
+      // Create a new empty note right away
+      const now = Date.now();
+      const noteData = {
+        title: '',
+        content: '',
+        created: now,
+        updated: now
+      };
+      
+      // Save it to localStorage
+      localStorage.setItem(newNoteId, JSON.stringify(noteData));
+      
+      // Update the URL to point to the new note
+      history.pushState(null, '', '?noteId=' + newNoteId);
+      
+      // Set the current note ID
+      noteId = newNoteId;
+      isNewNote = false;
+      
+      // Clear fields
+      noteTitle.value = '';
+      noteContent.value = '';
+      updatePageTitle('');
+      
+      // Make sure sidebar is visible (on desktop)
+      if (window.innerWidth > 768) {
+        sidebar.classList.remove('hidden');
+        sidebar.classList.remove('auto-hidden');
+        notebook.classList.remove('full-width');
+        toggleSidebar.classList.add('active');
+      }
+      
+      // Update the notes list to include the new note
+      loadNotesList();
+      
+      // Focus on title with a slight delay to ensure the DOM is ready
+      setTimeout(() => {
+        noteTitle.focus();
+      }, 100);
+      
+      // Show confirmation
+      showToast('New note created!', 'info');
+    }
+
+    // New Note button event listener
+    newNoteBtn.addEventListener('click', function() {
+      createNewNote();
+    });
+
+    // Handle Ctrl+N for new note
+    window.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        createNewNote();
+      }
+    });
+
+    // Load initial notes list
+    loadNotesList();
+
+    // Handle note navigation
+    window.addEventListener('popstate', function() {
+      location.reload();
+    });
+
+    // Check if we need to create a new note
+    function checkNoteExists() {
+      // If we're at the root and there are no notes, create a new empty state
+      if (!noteId && Object.keys(localStorage).filter(key => key.startsWith('note-')).length === 0) {
+        isNewNote = true;
+      }
+    }
+
+    // Run the check after loading notes list
+    checkNoteExists();
+  })();
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,723 @@
+:root {
+    --sidebar-width: 280px;
+    --primary-color: #6d9dc5; /* Soft blue instead of lavender */
+    --primary-dark: #5a85a8; /* Darker blue */
+    --accent-color: #a0c1b9; /* Soft sage green instead of peach */
+    --accent-hover: #7a9e95; /* Darker sage green */
+    --paper-color: #f9f7f2; /* Slightly warmer off-white */
+    --line-color: #d8d3c5; /* Taupe for lines */
+    --margin-color: #7a9e95; /* Sage green for margin */
+    --sidebar-bg: #f2f1ec; /* Warm light background with slight green undertone */
+    --note-item-bg: #f4f1e8; /* Warm cream with slight green undertone */
+    --note-item-active: #e8e4d5; /* Warmer cream */
+    --text-color: #4a5568; /* Slate gray instead of muted purple */
+    --delete-color: #e17055; /* Terracotta instead of soft coral */
+    --body-bg: #f2f1ec; /* Warm light background with slight green undertone */
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    background: var(--body-bg);
+    color: var(--text-color);
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23c5cfd6' fill-opacity='0.2' fill-rule='evenodd'/%3E%3C/svg%3E");
+  }
+
+  /* Sidebar Styling */
+  #sidebar {
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    height: 100vh;
+    box-shadow: 3px 0 15px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1); /* Smoother easing function */
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 10;
+    flex-shrink: 0;
+    border-right: 1px dashed var(--line-color);
+    will-change: transform; /* Optimize for animations */
+  }
+
+  #sidebar.hidden {
+    transform: translateX(calc(-1 * var(--sidebar-width)));
+  }
+
+  #sidebar h2 {
+    text-align: center;
+    padding: 20px 0 10px;
+    margin: 0;
+    background: var(--primary-color);
+    color: white;
+    font-size: 1.8rem;
+    font-weight: normal;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 0px var(--primary-dark);
+  }
+
+  #sidebar .subtitle {
+    text-align: center;
+    padding: 0 0 15px;
+    margin: 0;
+    background: var(--primary-color);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.8rem;
+    font-weight: normal;
+    letter-spacing: 0.5px;
+    border-bottom: 3px dashed #fff;
+  }
+
+  #noteList {
+    list-style: none;
+    overflow-y: auto;
+    flex-grow: 1;
+    padding: 16px;
+    background-image: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c5cfd6' fill-opacity='0.2'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  #noteList li {
+    margin-bottom: 12px;
+    border-radius: 8px;
+    background: var(--note-item-bg);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border: 1px solid var(--line-color);
+    overflow: hidden;
+  }
+
+  #noteList li:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  #noteList li.active {
+    background: var(--note-item-active);
+    border-left: 4px solid var(--primary-color);
+  }
+
+  #noteList li a {
+    padding: 14px 16px;
+    text-decoration: none;
+    color: var(--text-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1rem;
+    gap: 8px;
+  }
+
+  .deleteNote {
+    background: transparent;
+    border: none;
+    color: var(--delete-color);
+    cursor: pointer;
+    font-size: 18px;
+    opacity: 0.7;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+    margin-left: 8px;
+  }
+
+  .deleteNote:hover {
+    opacity: 1;
+    background: rgba(225, 112, 85, 0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Delete confirmation buttons */
+  .delete-confirm-container {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+  }
+
+  .confirm-delete, .cancel-delete {
+    border: none;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s;
+    margin-left: 4px;
+  }
+
+  .confirm-delete {
+    background: var(--delete-color);
+    color: white;
+  }
+
+  .confirm-delete:hover {
+    background: #c45a45;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .cancel-delete {
+    background: #e0e0e0;
+    color: var(--text-color);
+  }
+
+  .cancel-delete:hover {
+    background: #d0d0d0;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  /* Notebook Styling */
+  #notebook {
+    flex-grow: 1;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--paper-color);
+    transition: margin-left 0.5s cubic-bezier(0.25, 0.1, 0.25, 1); /* Match sidebar transition */
+    box-shadow: inset 5px 0 15px rgba(0,0,0,0.02);
+    margin-left: var(--sidebar-width);
+    will-change: margin-left; /* Optimize for animations */
+  }
+
+  #notebook.full-width {
+    margin-left: 0;
+  }
+
+  /* Create a header container for the toggle button and title */
+  .notebook-header {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+  }
+
+  #toggleSidebar {
+    background: var(--accent-color);
+    color: white;
+    width: 45px;
+    height: 45px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.3s ease; /* Smoother transition */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+    margin-right: 15px;
+    position: relative;
+  }
+  
+  #toggleSidebar:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  /* Change button appearance when sidebar is shown/hidden */
+  #toggleSidebar.active {
+    background: var(--primary-dark);
+  }
+  
+  /* Change toggle button icon based on sidebar state */
+  #toggleSidebar:before {
+    content: '📒';
+    transition: all 0.3s ease; /* Smooth icon transition */
+  }
+  
+  #sidebar.hidden ~ #notebook #toggleSidebar:before,
+  #sidebar.auto-hidden ~ #notebook #toggleSidebar:before {
+    content: '📖';
+  }
+
+  #noteTitle {
+    width: 100%;
+    font-size: 28px;
+    border: none;
+    outline: none;
+    padding: 0;
+    background: transparent;
+    color: var(--text-color);
+    font-family: inherit;
+    font-weight: bold;
+  }
+
+  .lined-paper {
+    flex-grow: 1;
+    position: relative;
+    overflow: hidden;
+    padding: 0 40px 40px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .paper-content {
+    height: 100%;
+    position: relative;
+    overflow-y: auto;
+    padding: 0 0 0 40px;
+    background-color: var(--paper-color);
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23c5cfd6' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) transparent;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .paper-content::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .paper-content::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .paper-content::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 4px;
+    border: 0;
+  }
+
+  .paper-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 30px;
+    bottom: 0;
+    width: 2px;
+    background: var(--margin-color);
+  }
+
+  .lined-paper textarea {
+    width: 100%;
+    min-height: 100%;
+    border: none;
+    resize: none;
+    outline: none;
+    background-color: transparent;
+    background-image: linear-gradient(to bottom, var(--line-color) 1px, transparent 1px);
+    background-size: 100% 28px;
+    background-attachment: local;
+    font-size: 18px;
+    line-height: 28px;
+    padding: 0 8px 0 0;
+    position: relative;
+    z-index: 2;
+    color: var(--text-color);
+    font-family: inherit;
+    box-sizing: border-box;
+    flex-grow: 1;
+  }
+
+  /* Remove paper-background styles since we no longer need it */
+  .paper-background {
+    display: none; /* Hide it instead of removing from HTML to avoid breaking scripts */
+  }
+
+  /* Hidden File Input */
+  #importNotesInput {
+    display: none;
+  }
+
+  /* Responsive Design */
+  @media screen and (max-width: 768px) {
+    #sidebar {
+      width: 100%;
+      z-index: 100;
+    }
+    
+    #notebook {
+      margin-left: 0;
+      min-height: 100vh;
+    }
+    
+    #sidebar.auto-hidden {
+      transform: translateX(-100%);
+    }
+    
+    #toggleSidebar {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 110;
+    }
+    
+    #toggleSidebar:after {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.2);
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    
+    #sidebar.auto-hidden ~ #notebook #toggleSidebar:after {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .notebook-header {
+      padding-left: 80px;
+    }
+    
+    #sidebarBottomButtons {
+      grid-template-columns: repeat(2, 1fr);
+      padding: 12px;
+    }
+    
+    #sidebarBottomButtons button {
+      font-size: 0.8rem;
+      padding: 8px 4px;
+    }
+  }
+
+  /* Add CSS for toast notifications */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    font-family: inherit;
+  }
+  
+  .toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  
+  .toast.success {
+    background: #5a9a7a;
+  }
+  
+  .toast.error {
+    background: var(--delete-color);
+  }
+  
+  .toast.info {
+    background: var(--accent-color);
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 20px;
+    text-align: center;
+    color: var(--text-color);
+    opacity: 0.7;
+  }
+  
+  .empty-state p {
+    margin-bottom: 15px;
+  }
+  
+  .empty-state button {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .empty-state button:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  
+  /* New Note Button Styling */
+  #newNoteButtonContainer {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.7);
+    border-bottom: 1px dashed var(--line-color);
+  }
+  
+  #newNoteBtn {
+    width: 100%;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  #newNoteBtn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  
+  /* Bottom Sidebar Buttons */
+  #sidebarBottomButtons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.7);
+    border-top: 1px dashed var(--line-color);
+    margin-top: auto;
+  }
+  
+  #sidebarBottomButtons button {
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 10px 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: inherit;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+    white-space: nowrap;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+  }
+  
+  #sidebarBottomButtons button:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  #sidebarBottomButtons button.danger-button {
+    background: #e17055;
+    color: white;
+  }
+  
+  #sidebarBottomButtons button.danger-button:hover {
+    background: #c45a45;
+  }
+
+  /* Sorting options for the sidebar */
+  #sortingOptions {
+    display: flex;
+    padding: 6px 16px;
+    background: rgba(255, 255, 255, 0.7);
+    border-bottom: 1px dashed var(--line-color);
+    gap: 6px;
+  }
+
+  #sortingOptions label {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    margin-right: 5px;
+  }
+
+  .sort-option {
+    flex: 1;
+    font-size: 0.7rem;
+    background: var(--paper-color);
+    border: 1px solid var(--line-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    color: var(--text-color);
+  }
+
+  .sort-option.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-dark);
+  }
+
+  .sort-option:hover {
+    background: var(--note-item-active);
+  }
+
+  .sort-option.active:hover {
+    background: var(--primary-dark);
+  }
+
+  .note-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+  }
+
+  .note-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .note-timestamp {
+    font-size: 0.7rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    white-space: nowrap;
+  }
+
+  /* Modal Styles */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    overflow: auto;
+  }
+
+  .modal-content {
+    position: relative;
+    background-color: var(--paper-color);
+    margin: 5% auto;
+    padding: 20px 30px;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    animation: modalFadeIn 0.3s ease-in-out;
+  }
+
+  @keyframes modalFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .close-modal {
+    color: var(--text-color);
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .close-modal:hover {
+    color: var(--primary-color);
+  }
+
+  .modal-content h2 {
+    color: var(--primary-color);
+    margin-bottom: 8px;
+  }
+
+  .modal-content h3 {
+    color: var(--primary-dark);
+    margin-top: 20px;
+    margin-bottom: 8px;
+    font-size: 18px;
+  }
+
+  .modal-content p {
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+
+  .modal-content ul {
+    margin: 10px 0 15px 20px;
+  }
+
+  .modal-content li {
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+
+  .bookmark-button-container {
+    text-align: center;
+    margin: 25px 0;
+  }
+
+  #bookmarkHomeButton {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  #bookmarkHomeButton:hover {
+    background-color: var(--primary-dark);
+  }
+
+  .credits {
+    margin-top: 30px;
+    padding-top: 15px;
+    border-top: 1px solid var(--line-color);
+    text-align: center;
+    font-size: 14px;
+  }
+
+  .credits a {
+    color: var(--primary-color);
+    text-decoration: none;
+  }
+
+  .credits a:hover {
+    text-decoration: underline;
+  }

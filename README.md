@@ -22,7 +22,7 @@ A minimalist, local-first note-taking app that runs in your browser. No accounts
 
 ### Hosted Version
 
-Noty is also available online at [usenoty.xyz](https://usenoty.xyz) and [johnnym.dev/p/noty]([https://usenoty.xyz](https://johnnym.dev/p/noty)). The hosted version offers the same features with the convenience of accessing your notes from any device with a web browser.
+Noty is also available online at [usenoty.xyz](https://usenoty.xyz) and [johnnym.dev/p/noty](https://johnnym.dev/p/noty). The hosted version offers the same features with the convenience of accessing your notes from any device with a web browser.
 
 ## Development
 

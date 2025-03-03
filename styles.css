@@ -694,15 +694,19 @@
     background-color: var(--primary-color);
     color: white;
     border: none;
-    padding: 10px 18px;
+    padding: 12px 20px;
     border-radius: 5px;
-    font-size: 16px;
+    font-size: 17px;
+    font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
 
   #bookmarkHomeButton:hover {
     background-color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
   }
 
   .credits {

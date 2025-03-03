@@ -717,22 +717,12 @@
     const helpButton = document.getElementById('helpButton');
     helpButton.addEventListener('click', showHelpModal);
     
-    // Handle bookmark home button
+    // Handle bookmark home button (now "Start Taking Notes" button)
     const bookmarkHomeButton = document.getElementById('bookmarkHomeButton');
+    
+    // Change functionality to simply close the modal
     bookmarkHomeButton.addEventListener('click', function() {
-      try {
-        // Try to add the bookmark
-        if (window.sidebar && window.sidebar.addPanel) { // For Firefox version < 23
-          window.sidebar.addPanel('Noty - New Note', window.location.origin + window.location.pathname, '');
-        } else if(window.external && ('AddFavorite' in window.external)) { // For IE
-          window.external.AddFavorite(window.location.origin + window.location.pathname, 'Noty - New Note');
-        } else { // For Chrome, Safari, Opera
-          showToast('Press ' + (navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Cmd+D' : 'Ctrl+D') + ' to bookmark this page', 'info');
-        }
-      } catch(e) {
-        showToast('Your browser doesn\'t allow adding bookmarks programmatically. Please press ' + 
-                  (navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Cmd+D' : 'Ctrl+D') + 
-                  ' to bookmark this page manually.', 'info');
-      }
+      const modal = document.getElementById('helpModal');
+      modal.style.display = 'none';
     });
   })();
